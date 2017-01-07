@@ -3,15 +3,18 @@
 
 var expect
 var Runnable
+var sinon
 var isNode = typeof require === 'function'
 
 if (isNode) {
   expect = require('chai').expect
-  Runnable = require('mocha').Runnable
+  Runnable = require('mocha-nightwatch').Runnable
+  sinon = require('sinon')
+  require('./lib/co-mocha.js')
 } else {
   expect = chai.expect
   Runnable = window.Mocha.Runnable
-
+  sinon = window.sinon
   ES6Promise.polyfill()
 }
 
@@ -26,16 +29,22 @@ function defer () {
   })
 }
 
+Runnable.prototype._nightwatch = {
+  api: sinon.stub(),
+  once: sinon.stub(),
+  shouldRestartQueue: sinon.stub().returns(false),
+  start: sinon.stub()
+}
+
 describe('co-mocha', function () {
   describe('synchronous', function () {
     it('should pass', function (done) {
-      var test = new Runnable('synchronous', function () {})
-
+      var test = new Runnable('synchronous', function (client) {})
       test.run(done)
     })
 
     it('should fail', function (done) {
-      var test = new Runnable('synchronous', function () {
+      var test = new Runnable('synchronous', function (client) {
         throw new Error('You had one job')
       })
 
@@ -50,7 +59,7 @@ describe('co-mocha', function () {
 
   describe('promise', function () {
     it('should pass', function (done) {
-      var test = new Runnable('promise', function () {
+      var test = new Runnable('promise', function (client) {
         return defer()
       })
 
@@ -58,7 +67,7 @@ describe('co-mocha', function () {
     })
 
     it('should fail', function (done) {
-      var test = new Runnable('promise', function () {
+      var test = new Runnable('promise', function (client) {
         return new Promise(function (resolve, reject) {
           return setTimeout(function () {
             return reject(new Error('You promised me'))
@@ -77,7 +86,7 @@ describe('co-mocha', function () {
 
   describe('callback', function () {
     it('should pass', function (done) {
-      var test = new Runnable('callback', function (done) {
+      var test = new Runnable('callback', function (client, done) {
         return setTimeout(done, 0)
       })
 
@@ -85,7 +94,7 @@ describe('co-mocha', function () {
     })
 
     it('should fail', function (done) {
-      var test = new Runnable('callback', function (done) {
+      var test = new Runnable('callback', function (client, done) {
         return setTimeout(function () {
           return done(new Error('You never called me back'))
         }, 0)
@@ -102,13 +111,13 @@ describe('co-mocha', function () {
 
   describe('generators', function () {
     var TEST_SOURCE = [
-      '(function * () {',
+      '(function * (client) {',
       '  yield defer()',
       '})'
     ].join('\n')
 
     var TEST_ERROR_SOURCE = [
-      '(function * () {',
+      '(function * (client) {',
       '  yield defer()',
       '  throw new Error(\'This generation has failed\')',
       '})'
