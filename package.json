@@ -39,7 +39,7 @@
   "bugs": {
     "url": "https://github.com/qt911025/co-mocha-nightwatch/issues"
   },
-  "homepage": "https://github.com/blakeembrey/co-mocha",
+  "homepage": "https://github.com/qt911025/co-mocha-nightwatch",
   "devDependencies": {
     "chai": "^3.0.0",
     "es6-promise": "^4.0.5",
