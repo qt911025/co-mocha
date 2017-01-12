@@ -1,4 +1,4 @@
-# Co Mocha
+# A fork from [Co Mocha](https://www.npmjs.com/package/co-mocha)
 
 Enable support for generators in Mocha (built in versoin of Nightwatch.js) tests using [co](https://github.com/visionmedia/co).
 
